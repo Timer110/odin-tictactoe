@@ -10,10 +10,7 @@ Players.player1 = new Player("Tobias", "X");
 Players.player2 = new Player("Markus", "O");
 Players.activePlayer = false; //false = Player1, true = Player2
 
-let gameBoard = [];
-for (let i = 0; i < 9; i++) {
-    gameBoard[i] = i;
-}
+let gameBoard = Array(9).fill("");
 
 //Player-Constructor
 
@@ -37,20 +34,20 @@ function createGameBoard() {
 function setMarker(fieldID) {
     const field = document.getElementById(fieldID);
     if (!Players.activePlayer && field.textContent == "") { //Wenn Player 1 aktiv ist
-        field.textContent = Players.player1.marker;
+        gameBoard[fieldID] = Players.player1.marker;
+        if (checkWinner()) return;
         playerChange();
     }
-    else if (Players.activePlayer && field.textContent == "") {
-        field.textContent = Players.player2.marker;
+    else if (Players.activePlayer && field.textContent == "") { //Wenn Player 2 aktiv ist
+        gameBoard[fieldID] = Players.player2.marker;
+        if (checkWinner()) return;
         playerChange();
-    
     }
 }
 
-function removeMarker() {
-    gameBoard.forEach((_, index) => {
-        document.getElementById(index).textContent = "";
-    })
+function resetGameBoard() {
+    gameBoard.fill("");
+    updateGameBoard();
 }
 
 function playerChange() {
@@ -58,17 +55,40 @@ function playerChange() {
     currentPlayer.textContent = Players.activePlayer ? (Players.player2.name + " ist am Zug!") : (Players.player1.name + " ist am Zug!");
 }
 
+function updateGameBoard() {
+    gameBoard.forEach((element, index) => {
+        document.getElementById(index).textContent = element;
+    });
+}
+
+function checkWinner(){
+    const winPatterns = [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8], //horizontal
+        [0, 3, 6], [1, 4, 7], [2, 5, 8], //vertikal
+        [0, 4, 8], [2, 4, 6]            //diagonal
+    ];
+
+    for (let pattern of winPatterns) {
+        const [a, b, c] = pattern;
+        if (gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c]) {
+            alert("Gewonnen!");
+            return true;
+        }
+    }
+    return false;
+} 
 
 //Eventlistener
 
 display.addEventListener("click", (e) => {
     if (e.target.classList.contains("boardField")) {
         setMarker(e.target.id);
+        updateGameBoard();
     }
 })
 
 resetButton.addEventListener("click", () => {
-    removeMarker();
+    resetGameBoard();
 });
 //
 
@@ -79,8 +99,8 @@ currentPlayer.textContent = Players.player1.name + " ist am Zug!"
 
 
 createGameBoard();
+resetGameBoard();
 
 //ToDo
 
-//gameBoard für die speicherung des Spiels nutzen und von createGameBoard nur anzeigen lassen. Besser als direkt mit .textContent!
 //Logik mit pattern machen, siehe ChatGPT
